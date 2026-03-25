@@ -10,17 +10,7 @@ const CONFIG = {
 };
 
 /* ===========================
-   Parser gwarantujący działanie wszędzie
-   =========================== */
-function parseISODate(d) {
-  const parts = d.split('-').map(Number);
-  if (parts.length !== 3) return new Date(NaN);
-  const [y, m, day] = parts;
-  return new Date(y, m - 1, day);
-}
-
-/* ===========================
-   Parametry URL
+   URL PARAMS
    =========================== */
 const url = new URL(window.location.href);
 const dateParam   = url.searchParams.get('date');
@@ -34,39 +24,67 @@ if (recordParam && !Number.isNaN(Number(recordParam))) {
 if (logoParam) CONFIG.LOGO_URL = logoParam;
 
 /* ===========================
-   Start po załadowaniu DOM
+   PARSER 100% KOMPATYBILNY
+   =========================== */
+function parseDateCompat(iso) {
+  // akceptuje też format 2023-4-9 itd.
+  let p = iso.split('-');
+  if (p.length !== 3) return new Date(NaN);
+
+  let y = parseInt(p[0], 10);
+  let m = parseInt(p[1], 10);
+  let d = parseInt(p[2], 10);
+
+  if (!y || !m || !d) return new Date(NaN);
+
+  return new Date(y, m - 1, d);
+}
+
+/* ===========================
+   FORMAT DD.MM.RRRR — BEZ INTL
+   =========================== */
+function formatPL(d) {
+  let dd = String(d.getDate()).padStart(2, '0');
+  let mm = String(d.getMonth() + 1).padStart(2, '0');
+  let yyyy = d.getFullYear();
+  return dd + '.' + mm + '.' + yyyy;
+}
+
+/* ===========================
+   FUNKCJE POMOCNICZE
+   =========================== */
+function atMidnight(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function daysBetween(a, b) {
+  const MS = 24*60*60*1000;
+  return Math.floor((atMidnight(b) - atMidnight(a)) / MS);
+}
+
+/* ===========================
+   LOGIKA — kompatybilna z Android 7 WebView
    =========================== */
 window.addEventListener('DOMContentLoaded', () => {
 
-  function atMidnight(d) {
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-
-  function daysBetween(a, b) {
-    const MS = 24*60*60*1000;
-    return Math.floor((atMidnight(b) - atMidnight(a)) / MS);
-  }
-
-  const lastAccident = parseISODate(CONFIG.LAST_ACCIDENT_ISO);
+  const lastAccident = parseDateCompat(CONFIG.LAST_ACCIDENT_ISO);
   const now = new Date();
   const today = atMidnight(now);
   const currentStreak = daysBetween(lastAccident, today);
 
-  /* ===========================
-     LocalStorage – bezpiecznie
-     =========================== */
-  let storageWorking = true;
+  /* ===== LOCAL STORAGE FALLBACK ===== */
+  let storageOK = true;
   try {
     localStorage.setItem('ls_test', '1');
     localStorage.removeItem('ls_test');
   } catch(e) {
-    storageWorking = false;
+    storageOK = false;
   }
 
   let saved = null;
   let record = Math.max(CONFIG.RECORD_BASE_DAYS, currentStreak);
 
-  if (storageWorking) {
+  if (storageOK) {
     try {
       saved = localStorage.getItem(CONFIG.LOCALSTORAGE_KEY);
       if (saved !== null && !Number.isNaN(Number(saved))) {
@@ -79,35 +97,21 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===========================
-     Formatter daty – bezpieczny
-     =========================== */
-  let fmtPL;
-  try {
-    fmtPL = new Intl.DateTimeFormat('pl-PL', {
-      day:'2-digit', month:'2-digit', year:'numeric'
-    });
-  } catch(e) {
-    fmtPL = {
-      format: d =>
-        String(d.getDate()).padStart(2,'0') + '.' +
-        String(d.getMonth()+1).padStart(2,'0') + '.' +
-        d.getFullYear()
-    };
-  }
-
-  /* ===========================
-     Render danych
+     RENDER DANYCH
      =========================== */
   document.getElementById('days').textContent = currentStreak;
   document.getElementById('record').textContent = record;
-  document.getElementById('last-date').textContent = fmtPL.format(lastAccident);
+  document.getElementById('last-date').textContent = formatPL(lastAccident);
   document.getElementById('logoImg').src = CONFIG.LOGO_URL;
 
   document.getElementById('buildInfo').textContent =
-    'Build: ' + new Date().toLocaleString('pl-PL');
+    'Build: ' + now.getDate().toString().padStart(2,'0') + '.' +
+    (now.getMonth()+1).toString().padStart(2,'0') + '.' +
+    now.getFullYear() + ' ' + now.getHours() + ':' +
+    now.getMinutes().toString().padStart(2,'0');
 
   /* ===========================
-     Auto‑reload po północy
+     AUTO-REFRESH O PÓŁNOCY
      =========================== */
   (function scheduleMidnightUpdate(){
     const nextMidnight = new Date(today.getTime() + 24*60*60*1000);
