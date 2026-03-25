@@ -1,81 +1,140 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Dni bez wypadku</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Minimalizacja cache po stronie playera signage -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 
 <style>
-html, body {
-  margin: 0;
-  height: 100%;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(135deg, #f4ede2, #debf83);
-}
-
-.container {
-  height: 100%;
-  padding: 6vh 8vw;
-  box-sizing: border-box;
-}
-
-.row {
-  font-size: 4vw;
-  margin: 4vh 0;
-  font-weight: bold;
-}
-
-.label {
-  color: #000;
-  margin-right: 1.5vw;
-}
-
-.value {
-  color: #f58c1f;
-  font-size: 5vw;
-}
-
-.logo {
-  position: absolute;
-  top: 3vh;
-  right: 4vw;
-  font-size: 2.5vw;
-  font-weight: bold;
-}
+  html, body { margin:0; height:100%; font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #f4ede2, #debf83); }
+  .container { height:100%; padding:6vh 8vw; box-sizing:border-box; }
+  .row { font-size:4vw; margin:4vh 0; font-weight:bold; }
+  .label { color:#000; margin-right:1.5vw; }
+  .value { color:#f58c1f; font-size:5vw; }
+  .logo { position:absolute; top:3vh; right:4vw; font-size:2.5vw; font-weight:bold; }
+  .build { position:fixed; bottom:1.2vh; right:1.4vw; font-size:.9vw; color:#444; opacity:.75; }
+  .muted { color:#333; font-weight:normal; font-size:2vw; margin-left:1vw; }
 </style>
 </head>
-
 <body>
-<div class="logo">Plant‑Tec Europe</div>
+  <div class="logo">Plant‑Tec Europe</div>
 
-<div class="container">
-  <div class="row">
-    <span class="label">DNI BEZ WYPADKU:</span>
-    <span class="value" id="days">---</span>
+  <div class="container">
+    <div class="row">
+      <span class="label">DNI BEZ WYPADKU:</span>
+      <span class="value" id="days">---</span>
+    </div>
+
+    <div class="row">
+      <span class="label">REKORD DNI BEZ WYPADKU:</span>
+      <span class="value" id="record">---</span>
+      <span class="muted" id="recordNote"></span>
+    </div>
+
+    <div class="row">
+      <span class="label">DATA OSTATNIEGO WYPADKU:</span>
+      <span class="value" id="last-date">--.--.----</span>
+    </div>
   </div>
 
-  <div class="row">
-    <span class="label">REKORD DNI BEZ WYPADKU:</span>
-    <span class="value">1070</span>
-  </div>
-
-  <div class="row">
-    <span class="label">DATA OSTATNIEGO WYPADKU:</span>
-    <span class="value">19.04.2024</span>
-  </div>
-</div>
+  <div class="build" id="buildInfo"></div>
 
 <script>
-const lastAccident = new Date(2021, 1, 2); // 3 = kwiecień - do zmiany przy wypadku
-const today = new Date();
+/* ===========================
+   CONFIG (możesz zmieniać tutaj)
+   =========================== */
 
-lastAccident.setHours(0,0,0,0);
-today.setHours(0,0,0,0);
+// Domyślna data w ISO (RRRR-MM-DD).
+// Nadpiszesz ją parametrem URL ?date=RRRR-MM-DD jeśli zechcesz.
+const CONFIG = {
+  LAST_ACCIDENT_ISO: '2024-04-19',     // ← TUTAJ wpisz domyślną datę
+  RECORD_BASE_DAYS: 1070,              // dotychczasowy rekord historyczny
+  AUTO_SAVE_NEW_RECORD: true,          // zapisz nowy rekord do localStorage
+  LOCALSTORAGE_KEY: 'planttec_bhp_record_days'
+};
 
-const days =
-  Math.floor((today - lastAccident) / (1000 * 60 * 60 * 24));
+/* =========================================
+   Parametry URL (opcjonalne, ułatwiają zmianę)
+   - ?date=RRRR-MM-DD    → nadpisze datę ostatniego wypadku
+   - ?record=1234        → nadpisze rekord bazowy (historyczny)
+   ========================================= */
+const url = new URL(window.location.href);
+const dateParam = url.searchParams.get('date');
+const recordParam = url.searchParams.get('record');
 
-document.getElementById("days").textContent = days;
+if (dateParam) CONFIG.LAST_ACCIDENT_ISO = dateParam;
+if (recordParam && !Number.isNaN(Number(recordParam))) {
+  CONFIG.RECORD_BASE_DAYS = Number(recordParam);
+}
+
+/* ===========================
+   Pomocnicze funkcje
+   =========================== */
+function atMidnight(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function daysBetween(a, b) { // b >= a, liczymy całe dni między północami
+  const MS = 24*60*60*1000;
+  return Math.floor((atMidnight(b) - atMidnight(a)) / MS);
+}
+
+/* ===========================
+   Logika wyliczeń
+   =========================== */
+const lastAccident = new Date(CONFIG.LAST_ACCIDENT_ISO + 'T00:00:00');
+const now = new Date();
+const today = atMidnight(now);
+
+const currentStreak = daysBetween(lastAccident, today);
+
+// Rekord = max(rekord historyczny, aktualny streak, rekord zapisany w localStorage)
+let record = Math.max(CONFIG.RECORD_BASE_DAYS, currentStreak);
+
+// Jeśli włączone, czytaj i zapisuj rekord w localStorage (utrzymanie po odświeżeniu)
+try {
+  const saved = localStorage.getItem(CONFIG.LOCALSTORAGE_KEY);
+  if (saved !== null && !Number.isNaN(Number(saved))) {
+    record = Math.max(record, Number(saved));
+  }
+  if (CONFIG.AUTO_SAVE_NEW_RECORD && currentStreak > Number(saved ?? -1)) {
+    localStorage.setItem(CONFIG.LOCALSTORAGE_KEY, String(currentStreak));
+  }
+} catch (e) {
+  // Jeżeli player blokuje localStorage, po prostu pomijamy zapisy.
+}
+
+/* ===========================
+   Render
+   =========================== */
+document.getElementById('days').textContent = currentStreak;
+
+document.getElementById('record').textContent = record;
+document.getElementById('recordNote').textContent =
+  (record > CONFIG.RECORD_BASE_DAYS)
+    ? '(nowy rekord)'
+    : '(rekord historyczny)';
+
+const fmtPL = new Intl.DateTimeFormat('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' });
+document.getElementById('last-date').textContent = fmtPL.format(lastAccident);
+
+// Informacja o buildzie (przydatna do diagnostyki cache)
+document.getElementById('buildInfo').textContent =
+  'Build: ' + new Date().toLocaleString('pl-PL');
+
+/* ===========================
+   Auto-odświeżenie po północy
+   =========================== */
+(function scheduleMidnightUpdate(){
+  const nextMidnight = new Date(today.getTime() + 24*60*60*1000);
+  const ms = nextMidnight - now;
+  setTimeout(() => location.reload(true), ms + 2000);
+})();
 </script>
 </body>
 </html>
