@@ -1,99 +1,70 @@
-:root{
-  --accent: #f58c1f;
-  --text:   #000;
-  --bg1:    #c9a268;
-  --bg2:    #efe6d6;
-}
-
-html, body {
-  height: 100%;
+* {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(25deg, var(--bg1) 0%, var(--bg2) 55%);
-}
-
-/* -------- UKŁAD DWUKOLUMNOWY -------- */
-.stage {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4vh 4vw;
+  padding: 0;
   box-sizing: border-box;
+}
+
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(to right, #e8dfd2, #d9c8a7);
+}
+
+.container {
   position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 60px;
 }
 
-/* -------- LOGO -------- */
-.logo-wrap {
+.left-img {
   position: absolute;
-  top: 0.01vh;
-  right: 3vw;
-  display: flex;
-  align-items: center;
-  gap: 1vw;
+  left: 60px;
+  top: 40px;
+  height: 400px;
 }
 
-.logo-wrap img {
-  height: 35vh;
-  width: auto;
+.right-logo {
+  position: absolute;
+  right: 60px;
+  top: 40px;
+  width: 320px;
 }
 
-.logo-text {
-  font-size: min(2.6vw, 34px);
-  color: var(--text);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-/* -------- LEWA: LUDZIK -------- */
-.left img {
-  height: 65vh;
-  width: auto;
-}
-
-/* -------- PRAWA: NAPISY -------- */
-.board {
-  text-align: right;
-  padding-right: 2vw;
-  margin-top: 32vh;
+.content {
+  position: absolute;
+  top: 400px;
+  right: 200px;
 }
 
 .row {
   display: flex;
-  justify-content: flex-end;
-  gap: 1vw;
-  margin: 3vh 0;
+  align-items: center;
+  margin-bottom: 50px;
 }
 
 .label {
-  font-weight: 900;
-  color: var(--text);
-  font-size: 2vw;
+  font-size: 54px;
+  font-weight: bold;
+  text-align: right;
+  width: 900px;
+  padding-right: 40px;
 }
 
 .value {
-  font-weight: 900;
-  color: var(--accent);
-  font-size: 2.2vw;
+  font-size: 64px;
+  font-weight: bold;
+  color: #f28c00;
+  text-align: left;
+  min-width: 250px;
 }
 
-/* TELEFONY */
-@media (max-width: 768px) {
-  .label { font-size: 26px; }
-  .value { font-size: 32px; }
-}
-
-/* BARDZO MAŁE TELEFONY */
-@media (max-width: 420px) {
-  .label { font-size: 22px; }
-  .value { font-size: 26px; }
-}
-
-.build {
-  position: fixed;
-  bottom: 1vh;
-  right: 1vw;
-  font-size: 12px;
-  color: rgba(0,0,0,.5);
+.date {
+  font-size: 64px;
+  font-weight: bold;
+  color: #f28c00;
+  text-align: left;
+  min-width: 350px;
 }
