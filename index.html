@@ -5,73 +5,170 @@
 <title>Dni bez wypadku</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Minimalizacja cache po stronie playera signage -->
+<!-- Ograniczenie cache po stronie playera -->
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 
 <style>
-  html, body { margin:0; height:100%; font-family: Arial, Helvetica, sans-serif;
-    background: linear-gradient(135deg, #f4ede2, #debf83); }
-  .container { height:100%; padding:6vh 8vw; box-sizing:border-box; }
-  .row { font-size:4vw; margin:4vh 0; font-weight:bold; }
-  .label { color:#000; margin-right:1.5vw; }
-  .value { color:#f58c1f; font-size:5vw; }
-  .logo { position:absolute; top:3vh; right:4vw; font-size:2.5vw; font-weight:bold; }
-  .build { position:fixed; bottom:1.2vh; right:1.4vw; font-size:.9vw; color:#444; opacity:.75; }
-  .muted { color:#333; font-weight:normal; font-size:2vw; margin-left:1vw; }
+  :root{
+    --accent: #f58c1f;     /* Pomarańcz wartości */
+    --text:   #000000;     /* Czerń etykiet */
+    --bg1:    #c9a268;     /* ciemniejszy dół/lewa */
+    --bg2:    #efe6d6;     /* jaśniejsza prawa/góra */
+    --maxW:   1400px;      /* maksymalna szerokość treści */
+  }
+
+  /* Pełny ekran z gradientem jak w projekcie */
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    /* Kierunek: z lewego-dolnego do prawego-górnego rogu */
+    background: linear-gradient(25deg, var(--bg1) 0%, var(--bg2) 55%);
+  }
+
+  /* Kontener główny: logo na top-right, treść przy dolnej krawędzi i wyśrodkowana */
+  .stage {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* treść schodzi do dołu */
+    align-items: center;       /* wyśrodkowanie w poziomie */
+  }
+
+  /* Logo w prawym górnym rogu */
+  .logo-wrap {
+    position: absolute;
+    top: 2.8vh;
+    right: 3.6vw;
+    display: flex;
+    align-items: center;
+    gap: 1.0vw;
+  }
+  .logo-wrap img {
+    height: 8vh;              /* skalowanie względne wysokości ekranu */
+    width: auto;
+    display: block;
+  }
+  .logo-text {
+    font-size: min(2.6vw, 34px);
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Blok z trzema wierszami na dole */
+  .board {
+    width: min(92vw, var(--maxW));
+    padding: 4vh 2vw 6vh;     /* większy dół dla oddechu, jak w makiecie */
+    box-sizing: border-box;
+    text-align: center;       /* wyśrodkowanie napisów */
+  }
+
+  .row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 1.2vw;
+    margin: 2.6vh 0;          /* odstępy między wierszami jak w slajdzie */
+  }
+
+  .label {
+    color: var(--text);
+    font-weight: 900;
+    letter-spacing: .5px;
+    /* rozmiar skalowany do szerokości ekranu, z górnym ograniczeniem */
+    font-size: clamp(22px, 2.8vw, 38px);
+  }
+
+  .value {
+    color: var(--accent);
+    font-weight: 900;
+    letter-spacing: .5px;
+    font-size: clamp(26px, 3.4vw, 46px);
+  }
+
+  /* Delikatna cienka ramka jak na przykładowej grafice (opcjonalne) */
+  .frame {
+    position: absolute;
+    inset: .8vh .8vw;
+    border: 1px solid rgba(0,0,0,.15);
+    pointer-events: none;
+  }
+
+  /* Znacznik build do diagnostyki (możesz wyłączyć) */
+  .build {
+    position: fixed;
+    bottom: .8vh; right: 1.0vw;
+    font-size: 12px;
+    color: rgba(0,0,0,.5);
+  }
 </style>
 </head>
 <body>
-  <div class="logo">Plant‑Tec Europe</div>
-
-  <div class="container">
-    <div class="row">
-      <span class="label">DNI BEZ WYPADKU:</span>
-      <span class="value" id="days">---</span>
+  <div class="stage">
+    <!-- LOGO w prawym górnym rogu -->
+    <div class="logo-wrap">
+      <!-- PODSTAW SWÓJ ADRES LOGO (PNG/SVG z tłem przezroczystym) -->
+      <img id="logoImg" src="https://raw.githubusercontent.com/macieksuperdrob-max/dni_bez_wypadku/main/logo.png" alt="Logo" />
+      <div class="logo-text">Plant‑Tec Europe</div>
     </div>
 
-    <div class="row">
-      <span class="label">REKORD DNI BEZ WYPADKU:</span>
-      <span class="value" id="record">---</span>
-      <span class="muted" id="recordNote"></span>
+    <!-- RAMKA (opcjonalna), komentarz aby wyłączyć -->
+    <div class="frame"></div>
+
+    <!-- BLOK NA DOLE, WYŚRODKOWANY -->
+    <div class="board">
+      <div class="row">
+        <span class="label">DNI BEZ WYPADKU:</span>
+        <span class="value" id="days">---</span>
+      </div>
+      <div class="row">
+        <span class="label">REKORD DNI BEZ WYPADKU:</span>
+        <span class="value" id="record">---</span>
+      </div>
+      <div class="row">
+        <span class="label">DATA OSTATNIEGO WYPADKU:</span>
+        <span class="value" id="last-date">--.--.----</span>
+      </div>
     </div>
 
-    <div class="row">
-      <span class="label">DATA OSTATNIEGO WYPADKU:</span>
-      <span class="value" id="last-date">--.--.----</span>
-    </div>
+    <div class="build" id="buildInfo"></div>
   </div>
-
-  <div class="build" id="buildInfo"></div>
 
 <script>
 /* ===========================
-   CONFIG (możesz zmieniać tutaj)
+   CONFIG
    =========================== */
-
-// Domyślna data w ISO (RRRR-MM-DD).
-// Nadpiszesz ją parametrem URL ?date=RRRR-MM-DD jeśli zechcesz.
 const CONFIG = {
-  LAST_ACCIDENT_ISO: '2022-01-03',     // ← TUTAJ wpisz domyślną datę
+  LAST_ACCIDENT_ISO: '2024-04-19',     // domyślna data (RRRR-MM-DD)
   RECORD_BASE_DAYS: 1070,              // dotychczasowy rekord historyczny
-  AUTO_SAVE_NEW_RECORD: true,          // zapisz nowy rekord do localStorage
-  LOCALSTORAGE_KEY: 'planttec_bhp_record_days'
+  AUTO_SAVE_NEW_RECORD: true,          // zapamiętywanie nowego rekordu
+  LOCALSTORAGE_KEY: 'planttec_bhp_record_days',
+  LOGO_URL: 'https://raw.githubusercontent.com/macieksuperdrob-max/dni_bez_wypadku/main/logo.png'
 };
 
-/* =========================================
-   Parametry URL (opcjonalne, ułatwiają zmianę)
-   - ?date=RRRR-MM-DD    → nadpisze datę ostatniego wypadku
-   - ?record=1234        → nadpisze rekord bazowy (historyczny)
-   ========================================= */
+/* ===========================
+   Parametry URL (opcjonalne)
+   ?date=RRRR-MM-DD
+   ?record=1234
+   ?logo=https://.../logo.svg
+   =========================== */
 const url = new URL(window.location.href);
-const dateParam = url.searchParams.get('date');
+const dateParam   = url.searchParams.get('date');
 const recordParam = url.searchParams.get('record');
+const logoParam   = url.searchParams.get('logo');
 
-if (dateParam) CONFIG.LAST_ACCIDENT_ISO = dateParam;
+if (dateParam)   CONFIG.LAST_ACCIDENT_ISO = dateParam;
 if (recordParam && !Number.isNaN(Number(recordParam))) {
   CONFIG.RECORD_BASE_DAYS = Number(recordParam);
 }
+if (logoParam)   CONFIG.LOGO_URL = logoParam;
 
 /* ===========================
    Pomocnicze funkcje
@@ -79,13 +176,13 @@ if (recordParam && !Number.isNaN(Number(recordParam))) {
 function atMidnight(d) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
-function daysBetween(a, b) { // b >= a, liczymy całe dni między północami
+function daysBetween(a, b) {
   const MS = 24*60*60*1000;
   return Math.floor((atMidnight(b) - atMidnight(a)) / MS);
 }
 
 /* ===========================
-   Logika wyliczeń
+   Logika wyliczeń + render
    =========================== */
 const lastAccident = new Date(CONFIG.LAST_ACCIDENT_ISO + 'T00:00:00');
 const now = new Date();
@@ -93,10 +190,7 @@ const today = atMidnight(now);
 
 const currentStreak = daysBetween(lastAccident, today);
 
-// Rekord = max(rekord historyczny, aktualny streak, rekord zapisany w localStorage)
 let record = Math.max(CONFIG.RECORD_BASE_DAYS, currentStreak);
-
-// Jeśli włączone, czytaj i zapisuj rekord w localStorage (utrzymanie po odświeżeniu)
 try {
   const saved = localStorage.getItem(CONFIG.LOCALSTORAGE_KEY);
   if (saved !== null && !Number.isNaN(Number(saved))) {
@@ -105,31 +199,22 @@ try {
   if (CONFIG.AUTO_SAVE_NEW_RECORD && currentStreak > Number(saved ?? -1)) {
     localStorage.setItem(CONFIG.LOCALSTORAGE_KEY, String(currentStreak));
   }
-} catch (e) {
-  // Jeżeli player blokuje localStorage, po prostu pomijamy zapisy.
-}
+} catch(e){ /* player może blokować localStorage – ignorujemy */ }
 
-/* ===========================
-   Render
-   =========================== */
-document.getElementById('days').textContent = currentStreak;
-
+document.getElementById('days').textContent   = currentStreak;
 document.getElementById('record').textContent = record;
-/*document.getElementById('recordNote').textContent =
-  (record > CONFIG.RECORD_BASE_DAYS)
-    ? '(nowy rekord)'
-    : '(rekord historyczny)';*/
 
 const fmtPL = new Intl.DateTimeFormat('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' });
 document.getElementById('last-date').textContent = fmtPL.format(lastAccident);
 
-// Informacja o buildzie (przydatna do diagnostyki cache)
+// ustaw logo z config / parametru
+document.getElementById('logoImg').src = CONFIG.LOGO_URL;
+
+// build info do diagnostyki cache
 document.getElementById('buildInfo').textContent =
   'Build: ' + new Date().toLocaleString('pl-PL');
 
-/* ===========================
-   Auto-odświeżenie po północy
-   =========================== */
+/* Auto‑refresh po północy */
 (function scheduleMidnightUpdate(){
   const nextMidnight = new Date(today.getTime() + 24*60*60*1000);
   const ms = nextMidnight - now;
