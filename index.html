@@ -1,54 +1,42 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Dni bez wypadku</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Dni bez wypadku</title>
+    <link rel="stylesheet" href="style.css">
 
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  </head>
 
-  <link rel="stylesheet" href="style.css">
-</head>
+  <body>
 
-<body>
+    <div class="container">
 
-<div class="stage">
+      <img src="ludekbhp.png" class="left-img">
+      <img src="PT.png" class="right-logo">
 
-  <!-- LOGO -->
-  <div class="logo-wrap">
-    <img id="logoImg" src="PT.png" alt="Logo">
-  </div>
+      <div class="content">
 
-  <!-- LEWA STRONA: LUDZIK -->
-  <div class="left">
-    <img src="ludekbhp.png" alt="Ludzik BHP">
-  </div>
+        <div class="row">
+          <div class="label">DNI BEZ WYPADKU:</div>
+          <div class="value" id="dni"></div>
+        </div>
 
-  <!-- PRAWA STRONA: NAPISY -->
-  <div class="board">
+        <div class="row">
+          <div class="label">REKORD DNI BEZ WYPADKU:</div>
+          <div class="value" id="rekord"></div>
+        </div>
 
-    <div class="row">
-      <span class="label">DNI BEZ:</span>
-      <span class="value" id="days">---</span>
+        <div class="row">
+          <div class="label">DATA OSTATNIEGO WYPADKU:</div>
+          <div class="date" id="data"></div>
+        </div>
+
+      </div>
+
     </div>
 
-    <div class="row">
-      <span class="label">REKORD DNI BEZ WYPADKU:</span>
-      <span class="value" id="record">---</span>
-    </div>
+    <script src="script.js"></script>
 
-    <div class="row">
-      <span class="label">DATA OSTATNIEGO WYPADKU:</span>
-      <span class="value" id="last-date">--.--.----</span>
-    </div>
-
-  </div>
-</div>
-
-<div class="build" id="buildInfo"></div>
-
-<script src="script.js"></script>
-</body>
+  </body>
 </html>
