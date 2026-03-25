@@ -79,17 +79,33 @@
     margin: 3vh 0;
   }
 
+
+
   .label {
-    font-size: clamp(22px, 2.6vw, 40px);
     font-weight: 900;
     color: var(--text);
+    font-size: 2vw;     /* duże ekrany */
   }
 
   .value {
-    font-size: clamp(26px, 3.2vw, 46px);
     font-weight: 900;
     color: var(--accent);
+    font-size: 2.2vw;       /* duże ekrany */
   }
+
+  /* TELEFONY – wymuszone minimum */
+  @media (max-width: 768px) {
+    .label { font-size: 26px; }
+    .value { font-size: 32px; }
+  }
+
+  /* BARDZO MAŁE TELEFONY */
+  @media (max-width: 420px) {
+    .label { font-size: 22px; }
+    .value { font-size: 26px; }
+  }
+
+
 
   .build {
     position: fixed;
