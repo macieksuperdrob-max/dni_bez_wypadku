@@ -1,7 +1,8 @@
+
 /* ===========================
-   CONFIG
+   CONFIG (ES5)
    =========================== */
-const CONFIG = {
+var CONFIG = {
   LAST_ACCIDENT_ISO: '2023-04-19',
   RECORD_BASE_DAYS: 2370,
   AUTO_SAVE_NEW_RECORD: true,
@@ -10,30 +11,45 @@ const CONFIG = {
 };
 
 /* ===========================
-   URL PARAMS
+   PARSER PARAMETRÓW URL (ES5)
    =========================== */
-const url = new URL(window.location.href);
-const dateParam   = url.searchParams.get('date');
-const recordParam = url.searchParams.get('record');
-const logoParam   = url.searchParams.get('logo');
+function getQueryParams() {
+  var params = {};
+  var href = window.location.href;
+  var qIndex = href.indexOf('?');
+  if (qIndex === -1) return params;
 
-if (dateParam) CONFIG.LAST_ACCIDENT_ISO = dateParam;
-if (recordParam && !Number.isNaN(Number(recordParam))) {
-  CONFIG.RECORD_BASE_DAYS = Number(recordParam);
+  var query = href.substring(qIndex + 1).split('&');
+  for (var i = 0; i < query.length; i++) {
+    var part = query[i];
+    var eq = part.indexOf('=');
+    if (eq > -1) {
+      var key = decodeURIComponent(part.substring(0, eq));
+      var val = decodeURIComponent(part.substring(eq + 1));
+      params[key] = val;
+    }
+  }
+  return params;
 }
-if (logoParam) CONFIG.LOGO_URL = logoParam;
+
+var params = getQueryParams();
+
+if (params.date) CONFIG.LAST_ACCIDENT_ISO = params.date;
+if (params.record && !isNaN(Number(params.record))) {
+  CONFIG.RECORD_BASE_DAYS = Number(params.record);
+}
+if (params.logo) CONFIG.LOGO_URL = params.logo;
 
 /* ===========================
-   PARSER 100% KOMPATYBILNY
+   PARSER DATY – BEZ ES6
    =========================== */
-function parseDateCompat(iso) {
-  // akceptuje też format 2023-4-9 itd.
-  let p = iso.split('-');
+function parseISO(iso) {
+  var p = iso.split('-');
   if (p.length !== 3) return new Date(NaN);
 
-  let y = parseInt(p[0], 10);
-  let m = parseInt(p[1], 10);
-  let d = parseInt(p[2], 10);
+  var y = parseInt(p[0], 10);
+  var m = parseInt(p[1], 10);
+  var d = parseInt(p[2], 10);
 
   if (!y || !m || !d) return new Date(NaN);
 
@@ -41,13 +57,15 @@ function parseDateCompat(iso) {
 }
 
 /* ===========================
-   FORMAT DD.MM.RRRR — BEZ INTL
+   FORMATOWANIE DATY – ES5
    =========================== */
+function pad2(v) {
+  v = String(v);
+  return v.length < 2 ? '0' + v : v;
+}
+
 function formatPL(d) {
-  let dd = String(d.getDate()).padStart(2, '0');
-  let mm = String(d.getMonth() + 1).padStart(2, '0');
-  let yyyy = d.getFullYear();
-  return dd + '.' + mm + '.' + yyyy;
+  return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.' + d.getFullYear();
 }
 
 /* ===========================
@@ -58,65 +76,69 @@ function atMidnight(d) {
 }
 
 function daysBetween(a, b) {
-  const MS = 24*60*60*1000;
+  var MS = 24 * 60 * 60 * 1000;
   return Math.floor((atMidnight(b) - atMidnight(a)) / MS);
 }
 
 /* ===========================
-   LOGIKA — kompatybilna z Android 7 WebView
+   START SKRYPTU
    =========================== */
-window.addEventListener('DOMContentLoaded', () => {
+window.onload = function() {
 
-  const lastAccident = parseDateCompat(CONFIG.LAST_ACCIDENT_ISO);
-  const now = new Date();
-  const today = atMidnight(now);
-  const currentStreak = daysBetween(lastAccident, today);
+  var lastAccident = parseISO(CONFIG.LAST_ACCIDENT_ISO);
+  var now = new Date();
+  var today = atMidnight(now);
+  var currentStreak = daysBetween(lastAccident, today);
 
-  /* ===== LOCAL STORAGE FALLBACK ===== */
-  let storageOK = true;
+  /* ===========================
+     LOCAL STORAGE (ES5)
+     =========================== */
+  var storageOK = true;
   try {
-    localStorage.setItem('ls_test', '1');
-    localStorage.removeItem('ls_test');
-  } catch(e) {
+    localStorage.setItem('test_ls', '1');
+    localStorage.removeItem('test_ls');
+  } catch (e) {
     storageOK = false;
   }
 
-  let saved = null;
-  let record = Math.max(CONFIG.RECORD_BASE_DAYS, currentStreak);
+  var saved = null;
+  var record = Math.max(CONFIG.RECORD_BASE_DAYS, currentStreak);
 
   if (storageOK) {
     try {
       saved = localStorage.getItem(CONFIG.LOCALSTORAGE_KEY);
-      if (saved !== null && !Number.isNaN(Number(saved))) {
+      if (saved !== null && !isNaN(Number(saved))) {
         record = Math.max(record, Number(saved));
       }
-      if (CONFIG.AUTO_SAVE_NEW_RECORD && currentStreak > Number(saved ?? -1)) {
+      if (CONFIG.AUTO_SAVE_NEW_RECORD && currentStreak > Number(saved || -1)) {
         localStorage.setItem(CONFIG.LOCALSTORAGE_KEY, String(currentStreak));
       }
-    } catch(e){}
+    } catch (e) {}
   }
 
   /* ===========================
-     RENDER DANYCH
+     RENDER
      =========================== */
-  document.getElementById('days').textContent = currentStreak;
-  document.getElementById('record').textContent = record;
-  document.getElementById('last-date').textContent = formatPL(lastAccident);
+  document.getElementById('days').innerHTML = currentStreak;
+  document.getElementById('record').innerHTML = record;
+  document.getElementById('last-date').innerHTML = formatPL(lastAccident);
   document.getElementById('logoImg').src = CONFIG.LOGO_URL;
 
-  document.getElementById('buildInfo').textContent =
-    'Build: ' + now.getDate().toString().padStart(2,'0') + '.' +
-    (now.getMonth()+1).toString().padStart(2,'0') + '.' +
-    now.getFullYear() + ' ' + now.getHours() + ':' +
-    now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('buildInfo').innerHTML =
+    "Build: " +
+    pad2(now.getDate()) + "." +
+    pad2(now.getMonth() + 1) + "." +
+    now.getFullYear() + " " +
+    pad2(now.getHours()) + ":" +
+    pad2(now.getMinutes());
 
   /* ===========================
-     AUTO-REFRESH O PÓŁNOCY
+     AUTO‑REFRESH O PÓŁNOCY
      =========================== */
-  (function scheduleMidnightUpdate(){
-    const nextMidnight = new Date(today.getTime() + 24*60*60*1000);
-    const ms = nextMidnight - now;
-    setTimeout(() => location.reload(true), ms + 2000);
-  })();
+  var nextMidnight = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  var ms = nextMidnight - now;
+  setTimeout(function() {
+    location.reload(true);
+  }, ms + 2000);
 
-});
+};
