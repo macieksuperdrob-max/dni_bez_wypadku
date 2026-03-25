@@ -29,8 +29,8 @@ body {
 .right-logo {
   position: absolute;
   right: 60px;
-  top: 40px;
-  width: 320px;
+  top: 00px;
+  width: 480px;
 }
 
 .content {
@@ -46,15 +46,15 @@ body {
 }
 
 .label {
-  font-size: 54px;
+  font-size: 72px;
   font-weight: bold;
   text-align: right;
-  width: 900px;
+  width: 1900px;
   padding-right: 40px;
 }
 
 .value {
-  font-size: 64px;
+  font-size: 80px;
   font-weight: bold;
   color: #f28c00;
   text-align: left;
@@ -62,7 +62,7 @@ body {
 }
 
 .date {
-  font-size: 64px;
+  font-size: 80px;
   font-weight: bold;
   color: #f28c00;
   text-align: left;
