@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -5,141 +6,141 @@
 <title>Dni bez wypadku</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Ograniczenie cache po stronie playera -->
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 
 <style>
   :root{
-    --accent: #f58c1f;     /* Pomarańcz wartości */
-    --text:   #000000;     /* Czerń etykiet */
-    --bg1:    #c9a268;     /* ciemniejszy dół/lewa */
-    --bg2:    #efe6d6;     /* jaśniejsza prawa/góra */
-    --maxW:   1400px;      /* maksymalna szerokość treści */
+    --accent: #f58c1f;
+    --text:   #000;
+    --bg1:    #c9a268;
+    --bg2:    #efe6d6;
   }
 
-  /* Pełny ekran z gradientem jak w projekcie */
   html, body {
     height: 100%;
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
-    /* Kierunek: z lewego-dolnego do prawego-górnego rogu */
     background: linear-gradient(25deg, var(--bg1) 0%, var(--bg2) 55%);
   }
 
-  /* Kontener główny: logo na top-right, treść przy dolnej krawędzi i wyśrodkowana */
+  /* -------- UKŁAD DWUKOLUMNOWY -------- */
   .stage {
-    position: relative;
     height: 100%;
     width: 100%;
-    overflow: hidden;
-
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end; /* treść schodzi do dołu */
-    align-items: center;       /* wyśrodkowanie w poziomie */
+    justify-content: space-between; /* lewa ↔ prawa */
+    align-items: center;            /* pionowe wyrównanie */
+    padding: 4vh 4vw;
+    box-sizing: border-box;
+    position: relative;
   }
 
-  /* Logo w prawym górnym rogu */
+  /* -------- LOGO W PRAWYM GÓRNYM ROGU -------- */
   .logo-wrap {
     position: absolute;
-    top: 2.8vh;
-    right: 3.6vw;
+    top: 0.01vh;
+    right: 3vw;
     display: flex;
     align-items: center;
-    gap: 1.0vw;
+    gap: 1vw;
   }
+
   .logo-wrap img {
-    height: 8vh;              /* skalowanie względne wysokości ekranu */
+    height: 35vh;
     width: auto;
-    display: block;
   }
+
   .logo-text {
     font-size: min(2.6vw, 34px);
     color: var(--text);
     font-weight: 700;
-    line-height: 1;
     white-space: nowrap;
   }
 
-  /* Blok z trzema wierszami na dole */
+  /* -------- LEWA: LUDZIK -------- */
+  .left img {
+    height: 65vh;
+    width: auto;
+  }
+
+  /* -------- PRAWA: NAPISY -------- */
   .board {
-    width: min(92vw, var(--maxW));
-    padding: 4vh 2vw 6vh;     /* większy dół dla oddechu, jak w makiecie */
-    box-sizing: border-box;
-    text-align: center;       /* wyśrodkowanie napisów */
+    text-align: right;
+    padding-right: 2vw;
+    margin-top: 32vh;
   }
 
   .row {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 1.2vw;
-    margin: 2.6vh 0;          /* odstępy między wierszami jak w slajdzie */
+    display: flex;
+    justify-content: flex-end;
+    gap: 1vw;
+    margin: 3vh 0;
   }
 
   .label {
-    color: var(--text);
+    font-size: clamp(22px, 2.6vw, 40px);
     font-weight: 900;
-    letter-spacing: .5px;
-    /* rozmiar skalowany do szerokości ekranu, z górnym ograniczeniem */
-    font-size: clamp(22px, 2.8vw, 38px);
+    color: var(--text);
   }
 
   .value {
-    color: var(--accent);
+    font-size: clamp(26px, 3.2vw, 46px);
     font-weight: 900;
-    letter-spacing: .5px;
-    font-size: clamp(26px, 3.4vw, 46px);
+    color: var(--accent);
   }
 
-  /* Delikatna cienka ramka jak na przykładowej grafice (opcjonalne) */
-  .frame {
-    position: absolute;
-    inset: .8vh .8vw;
-    border: 1px solid rgba(0,0,0,.15);
-    pointer-events: none;
-  }
-
-  /* Znacznik build do diagnostyki (możesz wyłączyć) */
   .build {
     position: fixed;
-    bottom: .8vh; right: 1.0vw;
+    bottom: 1vh;
+    right: 1vw;
     font-size: 12px;
     color: rgba(0,0,0,.5);
   }
 </style>
 </head>
+
 <body>
-  <div class="stage">
-    <!-- LOGO w prawym górnym rogu -->
-    <div class="logo-wrap">
-      <!-- PODSTAW SWÓJ ADRES LOGO (PNG/SVG z tłem przezroczystym) -->
-      <img id="logoImg" src="https://raw.githubusercontent.com/macieksuperdrob-max/dni_bez_wypadku/main/PT.png" alt="Logo" />
-      <div class="logo-text">Plant‑Tec Europe</div>
-    </div>
 
-    <!-- RAMKA (opcjonalna), komentarz aby wyłączyć -->
-    <div class="frame"></div>
+<div class="stage">
 
-    <!-- BLOK NA DOLE, WYŚRODKOWANY -->
-    <div class="board">
-      <div class="row">
-        <span class="label">DNI BEZ WYPADKU:</span>
-        <span class="value" id="days">---</span>
-      </div>
-      <div class="row">
-        <span class="label">REKORD DNI BEZ WYPADKU:</span>
-        <span class="value" id="record">---</span>
-      </div>
-      <div class="row">
-        <span class="label">DATA OSTATNIEGO WYPADKU:</span>
-        <span class="value" id="last-date">--.--.----</span>
-      </div>
-    </div>
+  <!-- LOGO -->
+  <div class="logo-wrap">
+    <img id="logoImg" src="PT.png" alt="Logo">
 
-    <div class="build" id="buildInfo"></div>
   </div>
+
+  <!-- LEWA STRONA: LUDZIK -->
+  <div class="left">
+    <img src="ludekbhp.png" alt="Ludzik BHP">
+  </div>
+
+  <!-- PRAWA STRONA: NAPISY -->
+  <div class="board">
+
+    <div class="row">
+      <span class="label">DNI BEZ WYPADKU:</span>
+      <span class="value" id="days">---</span>
+    </div>
+
+    <div class="row">
+      <span class="label">REKORD DNI BEZ WYPADKU:</span>
+      <span class="value" id="record">---</span>
+    </div>
+
+    <div class="row">
+      <span class="label">DATA OSTATNIEGO WYPADKU:</span>
+      <span class="value" id="last-date">--.--.----</span>
+    </div>
+
+  </div>
+</div>
+
+<div class="build" id="buildInfo"></div>
+
+
+
 
 <script>
 /* ===========================
@@ -150,7 +151,7 @@ const CONFIG = {
   RECORD_BASE_DAYS: 1070,              // dotychczasowy rekord historyczny
   AUTO_SAVE_NEW_RECORD: true,          // zapamiętywanie nowego rekordu
   LOCALSTORAGE_KEY: 'planttec_bhp_record_days',
-  LOGO_URL: 'https://raw.githubusercontent.com/macieksuperdrob-max/dni_bez_wypadku/main/logo.png'
+  LOGO_URL: 'PT.png'
 };
 
 /* ===========================
