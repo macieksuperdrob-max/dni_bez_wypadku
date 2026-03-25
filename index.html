@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Dni bez wypadku</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #f4ede2, #debf83);
+}
+
+.container {
+  height: 100%;
+  padding: 6vh 8vw;
+  box-sizing: border-box;
+}
+
+.row {
+  font-size: 4vw;
+  margin: 4vh 0;
+  font-weight: bold;
+}
+
+.label {
+  color: #000;
+  margin-right: 1.5vw;
+}
+
+.value {
+  color: #f58c1f;
+  font-size: 5vw;
+}
+
+.logo {
+  position: absolute;
+  top: 3vh;
+  right: 4vw;
+  font-size: 2.5vw;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<div class="logo">Plant‑Tec Europe</div>
+
+<div class="container">
+  <div class="row">
+    <span class="label">DNI BEZ WYPADKU:</span>
+    <span class="value" id="days">---</span>
+  </div>
+
+  <div class="row">
+    <span class="label">REKORD DNI BEZ WYPADKU:</span>
+    <span class="value">1070</span>
+  </div>
+
+  <div class="row">
+    <span class="label">DATA OSTATNIEGO WYPADKU:</span>
+    <span class="value">19.04.2024</span>
+  </div>
+</div>
+
+<script>
+const lastAccident = new Date(2024, 3, 19); // 3 = kwiecień
+const today = new Date();
+
+lastAccident.setHours(0,0,0,0);
+today.setHours(0,0,0,0);
+
+const days =
+  Math.floor((today - lastAccident) / (1000 * 60 * 60 * 24));
+
+document.getElementById("days").textContent = days;
+</script>
+</body>
+</html>
