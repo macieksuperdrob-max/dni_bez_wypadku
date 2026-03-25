@@ -115,10 +115,10 @@ try {
 document.getElementById('days').textContent = currentStreak;
 
 document.getElementById('record').textContent = record;
-document.getElementById('recordNote').textContent =
+/*document.getElementById('recordNote').textContent =
   (record > CONFIG.RECORD_BASE_DAYS)
     ? '(nowy rekord)'
-    : '(rekord historyczny)';
+    : '(rekord historyczny)';*/
 
 const fmtPL = new Intl.DateTimeFormat('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' });
 document.getElementById('last-date').textContent = fmtPL.format(lastAccident);
